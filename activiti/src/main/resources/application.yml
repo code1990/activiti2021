@@ -14,11 +14,11 @@ spring:
 logging:
   level:
     root: info
-#日志的相关配置
-#spring.activiti.history-level: full
-#spring.activiti.db-history-used: true
+#activiti 历史表全部创建
+spring.activiti.history-level: full
+spring.activiti.db-history-used: true
 # spring-activiti
 # 自动部署验证设置:true-开启（默认）、false-关闭
-#spring.activiti.check-process-definitions: false
+spring.activiti.check-process-definitions: false
 
 
