@@ -13,11 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipInputStream;
 
 @RestController
@@ -162,36 +164,33 @@ public class ProcessDefinitionController {
         }
     }
 
-//    @PostMapping(value = "/upload")
-//    public AjaxResponse upload(
-//            HttpServletRequest request,
-//            @RequestParam("processFile") MultipartFile multipartFile,
-//            ) {
-//        //获取上传的文件名
-//        String fileName = multipartFile.getOriginalFilename();
-//        try {
-//            InputStream inputStream = multipartFile.getInputStream();
-//            String ext = FilenameUtils.getExtension(fileName);
-//            Deployment deployment = null;
-//            if (ext.equals("zip")) {
-//                ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-//                deployment = repositoryService.createDeployment()
-//                        .name("流程部署名称可通过接口传递现在写死")
-//                        .deploy();
-//            } else {
-//                deployment = repositoryService.createDeployment()
-//                        .addInputStream(fileName, inputStream)
-//                        .name("流程部署名称可通过接口传递现在写死")
-//                        .deploy();
-//            }
-//            int status = GlobalConfig.ResponseCode.SUCCESS.getCode();
-//            String desc = GlobalConfig.ResponseCode.SUCCESS.getDesc();
-//            return AjaxResponse.AjaxData(status, desc, deployment.getName() + ":" + deployment.getId());
-//        } catch (Exception e) {
-//            int status = GlobalConfig.ResponseCode.ERROR.getCode();
-//            String desc = GlobalConfig.ResponseCode.ERROR.getDesc();
-//            return AjaxResponse.AjaxData(status, desc, e.getMessage());
-//        }
-//    }
+    @PostMapping(value = "/upload")
+    public AjaxResponse upload(HttpServletRequest request, @RequestParam("processFile") MultipartFile multipartFile) {
+
+        if (multipartFile.isEmpty()) {
+            System.out.println("文件为空");
+        }
+        String fileName = multipartFile.getOriginalFilename();  // 文件名
+        String suffixName = fileName.substring(fileName.lastIndexOf("."));  // 后缀名
+        String filePath = GlobalConfig.BPMN_PathMapping; // 上传后的路径
+
+        //本地路径格式转上传路径格式
+        filePath = filePath.replace("\\", "/");
+        filePath = filePath.replace("file:", "");
+
+        // String filePath = request.getSession().getServletContext().getRealPath("/") + "bpmn/";
+        fileName = UUID.randomUUID() + suffixName; // 新文件名
+        File file = new File(filePath + fileName);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+        try {
+            multipartFile.transferTo(file);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return AjaxResponse.AjaxData(GlobalConfig.ResponseCode.SUCCESS.getCode(),
+                GlobalConfig.ResponseCode.SUCCESS.getDesc(), fileName);
+    }
 
 }
